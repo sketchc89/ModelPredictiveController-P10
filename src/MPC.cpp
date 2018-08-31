@@ -3,23 +3,13 @@
 #include <cppad/ipopt/solve.hpp>
 #include "Eigen-3.3/Eigen/Core"
 
-using CppAD::AD;
+// using CppAD::AD;
 
 // TODO: Set the timestep length and duration
-size_t N = 0;
-double dt = 0;
+size_t N_TIMESTEPS = 25;
+double dt = 0.05;
 
-// This value assumes the model presented in the classroom is used.
-//
-// It was obtained by measuring the radius formed by running the vehicle in the
-// simulator around in a circle with a constant steering angle and velocity on a
-// flat terrain.
-//
-// Lf was tuned until the the radius formed by the simulating the model
-// presented in the classroom matched the previous radius.
-//
-// This is the length from front to CoG that has a similar radius.
-const double Lf = 2.67;
+const double Lf = 2.67; // length from front to center of gravity
 
 class FG_eval {
  public:
@@ -27,12 +17,32 @@ class FG_eval {
   Eigen::VectorXd coeffs;
   FG_eval(Eigen::VectorXd coeffs) { this->coeffs = coeffs; }
 
-  typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
-  void operator()(ADvector& fg, const ADvector& vars) {
-    // TODO: implement MPC
-    // `fg` a vector of the cost constraints, `vars` is a vector of variable values (state & actuators)
-    // NOTE: You'll probably go back and forth between this function and
-    // the Solver function below.
+  typedef CPPAD_TESTVECTOR(CppAD::AD<double>) ADvector;
+  void operator()(ADvector& cost_vars, const ADvector& state_vars) {
+    cost_vars[0] = 0; // cost value
+
+    int x_start = 0;
+    int y_start = N_TIMESTEPS;
+    int psi_start = 2*N_TIMESTEPS;
+    int vel_start = 3*N_TIMESTEPS;
+    int cte_start = 4*N_TIMESTEPS;
+    int psi_err_start = 5*N_TIMESTEPS;
+    int del_start = 6*N_TIMESTEPS;
+    int acc_start = 7*N_TIMESTEPS - 1;
+
+    for (int t=0; t<N_TIMESTEPS; ++t) {
+      cost_vars[0] += CppAD::pow(state_vars[vel_start + t], 2);
+      cost_vars[0] += CppAD::pow(state_vars[cte_start + t], 2);
+      cost_vars[0] += CppAD::pow(state_vars[psi_err_start + t], 2);
+    }
+    for (int t=0; t<N_TIMESTEPS - 1; ++t) {
+      cost_vars[0] += CppAD::pow(state_vars[del_start + t], 2);
+      cost_vars[0] += CppAD::pow(state_vars[acc_start + t], 2);
+    }
+    for (int t=0; t<N_TIMESTEPS - 2; ++t) {
+      cost_vars[0] += CppAD::pow(state_vars[del_start + t + 1] - state_vars[del_start + t], 2);
+      cost_vars[0] += CppAD::pow(state_vars[acc_start + t + 1] - state_vars[acc_start + t], 2);
+    }
   }
 };
 
@@ -52,7 +62,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // element vector and there are 10 timesteps. The number of variables is:
   //
   // 4 * 10 + 2 * 9
-  size_t n_vars = 0;
+  size_t n_vars = 4*N_TIMESTEPS + 2*(N_TIMESTEPS-1);
   // TODO: Set the number of constraints
   size_t n_constraints = 0;
 
