@@ -3,13 +3,22 @@
 #include <cppad/ipopt/solve.hpp>
 #include "Eigen-3.3/Eigen/Core"
 
-// using CppAD::AD;
+double rad2deg(double x) { return x * 180 / pi(); }
+double rad2deg(double x) { return x * 180 / pi(); }
 
-// TODO: Set the timestep length and duration
+
 size_t N_TIMESTEPS = 25;
 double dt = 0.05;
 
 const double Lf = 2.67; // length from front to center of gravity
+int x_start = 0;
+int y_start = N_TIMESTEPS;
+int psi_start = 2*N_TIMESTEPS;
+int vel_start = 3*N_TIMESTEPS;
+int cte_start = 4*N_TIMESTEPS;
+int psi_err_start = 5*N_TIMESTEPS;
+int del_start = 6*N_TIMESTEPS;
+int acc_start = 7*N_TIMESTEPS - 1;
 
 class FG_eval {
  public:
@@ -20,15 +29,6 @@ class FG_eval {
   typedef CPPAD_TESTVECTOR(CppAD::AD<double>) ADvector;
   void operator()(ADvector& cost_vars, const ADvector& state_vars) {
     cost_vars[0] = 0; // cost value
-
-    int x_start = 0;
-    int y_start = N_TIMESTEPS;
-    int psi_start = 2*N_TIMESTEPS;
-    int vel_start = 3*N_TIMESTEPS;
-    int cte_start = 4*N_TIMESTEPS;
-    int psi_err_start = 5*N_TIMESTEPS;
-    int del_start = 6*N_TIMESTEPS;
-    int acc_start = 7*N_TIMESTEPS - 1;
 
     for (int t=0; t<N_TIMESTEPS; ++t) {
       cost_vars[0] += CppAD::pow(state_vars[vel_start + t], 2);
@@ -62,23 +62,24 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // element vector and there are 10 timesteps. The number of variables is:
   //
   // 4 * 10 + 2 * 9
-  size_t n_vars = 4*N_TIMESTEPS + 2*(N_TIMESTEPS-1);
+  size_t n_vars = 6*N_TIMESTEPS + 2*(N_TIMESTEPS-1);
   // TODO: Set the number of constraints
-  size_t n_constraints = 0;
+  size_t n_constraints = 4*N_TIMESTEPS;
 
   // Initial value of the independent variables.
   // SHOULD BE 0 besides initial state.
-  Dvector vars(n_vars);
+  Dvector state_vars(n_vars);
   for (int i = 0; i < n_vars; i++) {
-    vars[i] = 0;
+    state_vars[i] = 0;
   }
 
-  Dvector vars_lowerbound(n_vars);
-  Dvector vars_upperbound(n_vars);
-  // TODO: Set lower and upper limits for variables.
+  Dvector state_vars_lowerbound(n_vars);
+  Dvector state_vars_upperbound(n_vars);
+  for (int i = del_start; i < acc_start; i++) {
+    state_vars_lowerbound[i] = 0;
+    state_vars_upperbound[i] = 0;
+  }
 
-  // Lower and upper limits for the constraints
-  // Should be 0 besides initial state.
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
   for (int i = 0; i < n_constraints; i++) {
@@ -89,22 +90,12 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   // object that computes objective and constraints
   FG_eval fg_eval(coeffs);
 
-  //
-  // NOTE: You don't have to worry about these options
-  //
   // options for IPOPT solver
   std::string options;
   // Uncomment this if you'd like more print information
   options += "Integer print_level  0\n";
-  // NOTE: Setting sparse to true allows the solver to take advantage
-  // of sparse routines, this makes the computation MUCH FASTER. If you
-  // can uncomment 1 of these and see if it makes a difference or not but
-  // if you uncomment both the computation time should go up in orders of
-  // magnitude.
   options += "Sparse  true        forward\n";
   options += "Sparse  true        reverse\n";
-  // NOTE: Currently the solver has a maximum time limit of 0.5 seconds.
-  // Change this as you see fit.
   options += "Numeric max_cpu_time          0.5\n";
 
   // place to return solution
@@ -112,7 +103,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
 
   // solve the problem
   CppAD::ipopt::solve<Dvector, FG_eval>(
-      options, vars, vars_lowerbound, vars_upperbound, constraints_lowerbound,
+      options, state_vars, state_vars_lowerbound, state_vars_upperbound, constraints_lowerbound,
       constraints_upperbound, fg_eval, solution);
 
   // Check some of the solution values
@@ -127,5 +118,14 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   //
   // {...} is shorthand for creating a vector, so auto x1 = {1.0,2.0}
   // creates a 2 element double vector.
-  return {};
+  std::vector<double> step_1;
+  step_1.push_back(solution.x[x_start+1]);
+  step_1.push_back(solution.x[y_start+1]);
+  step_1.push_back(solution.x[psi_start+1]);
+  step_1.push_back(solution.x[vel_start+1]);
+  step_1.push_back(solution.x[cte_start+1]); 
+  step_1.push_back(solution.x[psi_err_start]);
+  step_1.push_back(solution.x[del_start]);
+  step_1.push_back(solution.x[acc_start]);
+  return step_1;
 }
