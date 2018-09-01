@@ -3,9 +3,8 @@
 #include <cppad/ipopt/solve.hpp>
 #include "Eigen-3.3/Eigen/Core"
 
+double deg2rad(double x) { return x * pi() / 180; }
 double rad2deg(double x) { return x * 180 / pi(); }
-double rad2deg(double x) { return x * 180 / pi(); }
-
 
 size_t N_TIMESTEPS = 25;
 double dt = 0.05;
@@ -76,8 +75,12 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   Dvector state_vars_lowerbound(n_vars);
   Dvector state_vars_upperbound(n_vars);
   for (int i = del_start; i < acc_start; i++) {
+    state_vars_lowerbound[i] = deg2rad(-25);
+    state_vars_upperbound[i] = deg2rad(25);
+  }
+  for (int i = acc_start; i < n_vars; i++) {
     state_vars_lowerbound[i] = 0;
-    state_vars_upperbound[i] = 0;
+    state_vars_upperbound[i] = -1;
   }
 
   Dvector constraints_lowerbound(n_constraints);
