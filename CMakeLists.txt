@@ -47,6 +47,7 @@ set(sources
     src/Helper.cpp)
 set (tests 
     src/MPC_test.cpp
+    src/FG_eval_test.cpp
     src/main_test.cpp)
 
 include_directories(/usr/local/include)
