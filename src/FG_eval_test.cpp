@@ -3,7 +3,8 @@
 #include "Eigen-3.3/Eigen/Core"
 
 TEST(FG_eval, Initializes) {
-    Eigen::VectorXd v;
+    Eigen::VectorXd v(1);
     v << 0;
     FG_eval fg(v);
+
 }
