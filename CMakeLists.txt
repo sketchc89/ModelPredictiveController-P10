@@ -6,7 +6,8 @@ cmake_minimum_required (VERSION 3.5)
 # turn on -03 for best performance
 add_definitions(-std=c++11 -O3)
 
-set(CXX_FLAGS "-Wall")
+set(CXX_FLAGS)
+# "-Wall")
 set(CMAKE_CXX_FLAGS "${CXX_FLAGS}")
 
 # Download and unpack googletest at configure time
@@ -43,8 +44,7 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 set(sources 
     src/MPC.cpp 
     src/main.cpp
-    src/FG_eval.cpp
-    src/Helper.cpp)
+    src/FG_eval.cpp)
 set (tests 
     src/MPC_test.cpp
     src/FG_eval_test.cpp
@@ -57,5 +57,5 @@ include_directories(src/Eigen-3.3)
 add_executable(mpc ${sources})
 target_link_libraries(mpc ipopt z ssl uv uWS)
 
-add_executable(mpc_test ${tests} src/MPC.cpp src/FG_eval.cpp src/Helper.cpp)
-target_link_libraries(mpc_test ipopt gtest gmock)
+# add_executable(mpc_test ${tests} src/MPC.cpp src/FG_eval.cpp)
+# target_link_libraries(mpc_test ipopt gtest gmock)

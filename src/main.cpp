@@ -4,13 +4,10 @@
 #include <iostream>
 #include <thread>
 #include <vector>
-#include "Eigen-3.3/Eigen/Core"
-#include "Eigen-3.3/Eigen/QR"
+#include "Eigen/Core"
+#include "Eigen/QR"
 #include "MPC.h"
 #include "json.hpp"
-#ifndef HELPER_H
-  #include "Helper.h"
-#endif
 // for convenience
 using json = nlohmann::json;
 
@@ -29,14 +26,14 @@ string hasData(string s) {
   return "";
 }
 
-// Evaluate a polynomial.
-double polyeval(Eigen::VectorXd coeffs, double x) {
-  double result = 0.0;
-  for (int i = 0; i < coeffs.size(); i++) {
-    result += coeffs[i] * pow(x, i);
-  }
-  return result;
-}
+// // Evaluate a polynomial.
+// double polyeval(Eigen::VectorXd coeffs, double x) {
+//   double result = 0.0;
+//   for (int i = 0; i < coeffs.size(); i++) {
+//     result += coeffs[i] * pow(x, i);
+//   }
+//   return result;
+// }
 
 // Fit a polynomial.
 // Adapted from
@@ -113,6 +110,11 @@ int main() {
             display_x.push_back(dx);
             display_y.push_back(dy);
           }
+          double cte = coeffs[0];
+          double psi_err = -1*std::atan(coeffs[1]);
+          Eigen::VectorXd cur_state(8);
+          cur_state << 0, 0, 0, vel, cte, psi_err, del, acc; 
+          std::vector<double> result = mpc.Solve(cur_state, coeffs);
           /*
           * TODO: Calculate steering angle and throttle using MPC.
           *
