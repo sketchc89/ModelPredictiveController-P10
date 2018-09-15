@@ -15,10 +15,11 @@ class MPC {
 
   // Solve the model given an initial state and polynomial coefficients.
   // Return the first actuatotions.
+  typedef CPPAD_TESTVECTOR(double) Dvector;
   vector<double> Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
-  void SetStateVariables(CppAD::vector<double> mpc_state, Eigen::VectorXd cur_state);
-  void SetStateVariableBounds(CppAD::vector<double> lowerbound, CppAD::vector<double> upperbound);
-  void SetControlBounds(CppAD::vector<double> lowerbound, CppAD::vector<double> upperbound,
+  void SetStateVariables(CppAD::vector<double> &mpc_state, Eigen::VectorXd cur_state);
+  void SetStateVariableBounds(CppAD::vector<double> &lowerbound, CppAD::vector<double> &upperbound);
+  void SetControlBounds(CppAD::vector<double> &lowerbound, CppAD::vector<double> &upperbound,
     Eigen::VectorXd cur_state);
 };
 

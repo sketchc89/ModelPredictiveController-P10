@@ -15,21 +15,20 @@ MPC::~MPC() {}
 
 vector<double> MPC::Solve(Eigen::VectorXd cur_state, Eigen::VectorXd poly_coeffs) {
   bool ok = true;
-  typedef CPPAD_TESTVECTOR(double) Dvector;
-
+  
   Helper helper;
   size_t n_vars = 6*helper.N_TIMESTEPS + 2*(helper.N_TIMESTEPS-1);
   size_t n_constraints = 6*helper.N_TIMESTEPS;
 
-  Dvector state_vars(n_vars);
+  CppAD::vector<double> state_vars(n_vars);
   SetStateVariables(state_vars, cur_state);
   
-  Dvector state_vars_lowerbound(n_vars);
-  Dvector state_vars_upperbound(n_vars);
+  CppAD::vector<double> state_vars_lowerbound(n_vars);
+  CppAD::vector<double> state_vars_upperbound(n_vars);
   SetStateVariableBounds(state_vars_lowerbound, state_vars_upperbound);
 
-  Dvector constraints_lowerbound(n_constraints);
-  Dvector constraints_upperbound(n_constraints);
+  CppAD::vector<double> constraints_lowerbound(n_constraints);
+  CppAD::vector<double> constraints_upperbound(n_constraints);
   SetControlBounds(constraints_lowerbound, constraints_upperbound, cur_state);
 
   // object that computes objective and constraints
@@ -44,15 +43,15 @@ vector<double> MPC::Solve(Eigen::VectorXd cur_state, Eigen::VectorXd poly_coeffs
   options += "Numeric max_cpu_time          0.5\n";
 
   // place to return solution
-  CppAD::ipopt::solve_result<Dvector> solution;
+  CppAD::ipopt::solve_result<CppAD::vector<double>> solution;
 
   // solve the problem
-  CppAD::ipopt::solve<Dvector, FG_eval>(
+  CppAD::ipopt::solve<CppAD::vector<double>, FG_eval>(
       options, state_vars, state_vars_lowerbound, state_vars_upperbound, constraints_lowerbound,
       constraints_upperbound, fg_eval, solution);
 
   // Check some of the solution values
-  ok &= solution.status == CppAD::ipopt::solve_result<Dvector>::success;
+  ok &= solution.status == CppAD::ipopt::solve_result<CppAD::vector<double> >::success;
 
   // Cost
   auto cost = solution.obj_value;
@@ -71,7 +70,7 @@ vector<double> MPC::Solve(Eigen::VectorXd cur_state, Eigen::VectorXd poly_coeffs
 }
 
 void MPC::SetStateVariables(
-  CppAD::vector<double> mpc_state, 
+  CppAD::vector<double> &mpc_state, 
   Eigen::VectorXd cur_state) 
 {
   Helper helper;
@@ -89,8 +88,8 @@ void MPC::SetStateVariables(
 }
 
 void MPC::SetStateVariableBounds(
-  CppAD::vector<double> lowerbound,
-  CppAD::vector<double> upperbound) 
+  CppAD::vector<double> &lowerbound,
+  CppAD::vector<double> &upperbound) 
 {
   Helper helper;
   if (lowerbound.size() != upperbound.size()) {
@@ -111,8 +110,8 @@ void MPC::SetStateVariableBounds(
 }
 
 void MPC::SetControlBounds(
-  CppAD::vector<double> lowerbound,
-  CppAD::vector<double> upperbound,
+  CppAD::vector<double> &lowerbound,
+  CppAD::vector<double> &upperbound,
   Eigen::VectorXd cur_state) 
 {
   Helper helper;
