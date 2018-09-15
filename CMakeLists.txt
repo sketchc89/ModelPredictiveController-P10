@@ -40,8 +40,14 @@ link_directories(/usr/local/opt/openssl/lib)
 link_directories(/usr/local/Cellar/libuv/1*/lib)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-set(sources src/MPC.cpp src/main.cpp src/Helper.cpp)
-set (tests src/MPC_test.cpp src/main_test.cpp)
+set(sources 
+    src/MPC.cpp 
+    src/main.cpp
+    src/FG_eval.cpp
+    src/Helper.cpp)
+set (tests 
+    src/MPC_test.cpp
+    src/main_test.cpp)
 
 include_directories(/usr/local/include)
 link_directories(/usr/local/lib)
@@ -50,5 +56,5 @@ include_directories(src/Eigen-3.3)
 add_executable(mpc ${sources})
 target_link_libraries(mpc ipopt z ssl uv uWS)
 
-add_executable(mpc_test ${tests} src/MPC.cpp src/Helper.cpp)
+add_executable(mpc_test ${tests} src/MPC.cpp src/FG_eval.cpp src/Helper.cpp)
 target_link_libraries(mpc_test ipopt gtest gmock)
