@@ -8,14 +8,11 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "MPC.h"
 #include "json.hpp"
-
+#ifndef HELPER_H
+  #include "Helper.h"
+#endif
 // for convenience
 using json = nlohmann::json;
-
-// For converting back and forth between radians and degrees.
-constexpr double pi() { return M_PI; }
-double deg2rad(double x) { return x * pi() / 180; }
-double rad2deg(double x) { return x * 180 / pi(); }
 
 // Checks if the SocketIO event has JSON data.
 // If there is data the JSON object in string format will be returned,
@@ -87,10 +84,10 @@ int main() {
           // j[1] is the data JSON object
           vector<double> ptsx = j[1]["ptsx"];
           vector<double> ptsy = j[1]["ptsy"];
-          double px = j[1]["x"];
-          double py = j[1]["y"];
-          double psi = j[1]["psi"];
-          double v = j[1]["speed"];
+          // double px = j[1]["x"];
+          // double py = j[1]["y"];
+          // double psi = j[1]["psi"];
+          // double v = j[1]["speed"];
 
           /*
           * TODO: Calculate steering angle and throttle using MPC.
@@ -98,8 +95,8 @@ int main() {
           * Both are in between [-1, 1].
           *
           */
-          double steer_value;
-          double throttle_value;
+          double steer_value = 0.0;
+          double throttle_value = 0.0;
 
           json msgJson;
           // NOTE: Remember to divide by deg2rad(25) before you send the steering value back.
