@@ -2,22 +2,9 @@
 #include <cppad/cppad.hpp>
 #include <cppad/ipopt/solve.hpp>
 #include "Eigen-3.3/Eigen/Core"
-
-const double pi() { return M_PI;}
-double deg2rad(double x) { return x * pi() / 180; }
-double rad2deg(double x) { return x * 180 / pi(); }
-
-size_t N_TIMESTEPS = 25;
-double dt = 0.05;
-
-int x_start = 0;
-int y_start = N_TIMESTEPS;
-int psi_start = 2*N_TIMESTEPS;
-int vel_start = 3*N_TIMESTEPS;
-int cte_start = 4*N_TIMESTEPS;
-int psi_err_start = 5*N_TIMESTEPS;
-int del_start = 6*N_TIMESTEPS;
-int acc_start = 7*N_TIMESTEPS - 1;
+#ifndef HELPER_H
+  #include "Helper.h"
+#endif
 
 class FG_eval {
  public:
@@ -30,25 +17,26 @@ class FG_eval {
   void operator()(ADvector& cost_vars, const ADvector& state_vars) {
     cost_vars[0] = 0; // cost value
 
-    for (int t=0; t<N_TIMESTEPS; ++t) {
-      CppAD::AD<double> x_0 = state_vars[x_start + t - 1];
-      CppAD::AD<double> x_1 = state_vars[x_start + t];
-      CppAD::AD<double> y_0 = state_vars[y_start + t - 1];
-      CppAD::AD<double> y_1 = state_vars[y_start + t];
-      CppAD::AD<double> psi_0 = state_vars[psi_start + t - 1];
-      CppAD::AD<double> psi_1 = state_vars[psi_start + t];
-      CppAD::AD<double> vel_0 = state_vars[vel_start + t - 1];
-      CppAD::AD<double> vel_1 = state_vars[vel_start + t];
-      CppAD::AD<double> cte_0 = state_vars[cte_start + t - 1];
-      CppAD::AD<double> cte_1 = state_vars[cte_start + t];
-      CppAD::AD<double> psi_err_0 = state_vars[psi_err_start + t - 1];
-      CppAD::AD<double> psi_err_1 = state_vars[psi_err_start + t];
-      CppAD::AD<double> del_0 = state_vars[del_start + t - 1];
-      CppAD::AD<double> del_1 = state_vars[del_start + t];
-      CppAD::AD<double> del_2 = state_vars[del_start + t + 1];
-      CppAD::AD<double> acc_0 = state_vars[acc_start + t - 1];
-      CppAD::AD<double> acc_1 = state_vars[acc_start + t];
-      CppAD::AD<double> acc_2 = state_vars[acc_start + t + 1];
+    Helper helper;
+    for (size_t t=0; t<helper.N_TIMESTEPS; ++t) {
+      CppAD::AD<double> x_0 = state_vars[helper.x_start + t - 1];
+      CppAD::AD<double> x_1 = state_vars[helper.x_start + t];
+      CppAD::AD<double> y_0 = state_vars[helper.y_start + t - 1];
+      CppAD::AD<double> y_1 = state_vars[helper.y_start + t];
+      CppAD::AD<double> psi_0 = state_vars[helper.psi_start + t - 1];
+      CppAD::AD<double> psi_1 = state_vars[helper.psi_start + t];
+      CppAD::AD<double> vel_0 = state_vars[helper.vel_start + t - 1];
+      CppAD::AD<double> vel_1 = state_vars[helper.vel_start + t];
+      CppAD::AD<double> cte_0 = state_vars[helper.cte_start + t - 1];
+      CppAD::AD<double> cte_1 = state_vars[helper.cte_start + t];
+      CppAD::AD<double> psi_err_0 = state_vars[helper.psi_err_start + t - 1];
+      CppAD::AD<double> psi_err_1 = state_vars[helper.psi_err_start + t];
+      CppAD::AD<double> del_0 = state_vars[helper.del_start + t - 1];
+      CppAD::AD<double> del_1 = state_vars[helper.del_start + t];
+      CppAD::AD<double> del_2 = state_vars[helper.del_start + t + 1];
+      CppAD::AD<double> acc_0 = state_vars[helper.acc_start + t - 1];
+      CppAD::AD<double> acc_1 = state_vars[helper.acc_start + t];
+      CppAD::AD<double> acc_2 = state_vars[helper.acc_start + t + 1];
       CppAD::AD<double> psi_dest = CppAD::atan(coeffs[1]);
       CppAD::AD<double> cte_x_0 = coeffs[0] + coeffs[1]*x_0;  
         
@@ -57,20 +45,20 @@ class FG_eval {
       cost_vars[0] += CppAD::pow(cte_1, 2);
       
       if (t > 0) {
-        cost_vars[1 + x_start + t] = x_1 - x_0 - vel_0*dt*CppAD::cos(psi_0);
-        cost_vars[1 + y_start + t] = y_1 - y_0 - vel_0*dt*CppAD::cos(psi_0);
-        cost_vars[1 + psi_start + t] = psi_1 - psi_0 - vel_0*del_0*dt/L_f;
-        cost_vars[1 + vel_start + t] = vel_1 - acc_0*dt;
-        cost_vars[1 + cte_start + t] = psi_err_1 - cte_x_0 + y_0 - vel_0*dt*CppAD::sin(psi_err_0);
-        cost_vars[1 + psi_err_start + t] = psi_err_1 - psi_0 + psi_dest -vel_0*del_0*dt/L_f; 
+        cost_vars[1 + helper.x_start + t] = x_1 - x_0 - vel_0*helper.dt*CppAD::cos(psi_0);
+        cost_vars[1 + helper.y_start + t] = y_1 - y_0 - vel_0*helper.dt*CppAD::cos(psi_0);
+        cost_vars[1 + helper.psi_start + t] = psi_1 - psi_0 - vel_0*del_0*helper.dt/L_f;
+        cost_vars[1 + helper.vel_start + t] = vel_1 - acc_0*helper.dt;
+        cost_vars[1 + helper.cte_start + t] = psi_err_1 - cte_x_0 + y_0 - vel_0*helper.dt*CppAD::sin(psi_err_0);
+        cost_vars[1 + helper.psi_err_start + t] = psi_err_1 - psi_0 + psi_dest -vel_0*del_0*helper.dt/L_f; 
       }
       
-      if (t < N_TIMESTEPS - 1){
+      if (t < helper.N_TIMESTEPS - 1){
         cost_vars[0] += CppAD::pow(del_1, 2);
         cost_vars[0] += CppAD::pow(acc_1, 2);
       }
       
-      if (t < N_TIMESTEPS - 2) {
+      if (t < helper.N_TIMESTEPS - 2) {
         cost_vars[0] += CppAD::pow(del_2 - del_1, 2);
         cost_vars[0] += CppAD::pow(acc_2 - acc_1, 2);
       }
@@ -86,11 +74,11 @@ MPC::~MPC() {}
 
 vector<double> MPC::Solve(Eigen::VectorXd cur_state, Eigen::VectorXd poly_coeffs) {
   bool ok = true;
-  size_t i;
   typedef CPPAD_TESTVECTOR(double) Dvector;
 
-  size_t n_vars = 6*N_TIMESTEPS + 2*(N_TIMESTEPS-1);
-  size_t n_constraints = 6*N_TIMESTEPS;
+  Helper helper;
+  size_t n_vars = 6*helper.N_TIMESTEPS + 2*(helper.N_TIMESTEPS-1);
+  size_t n_constraints = 6*helper.N_TIMESTEPS;
 
   Dvector state_vars(n_vars);
   SetStateVariables(state_vars, cur_state);
@@ -130,14 +118,14 @@ vector<double> MPC::Solve(Eigen::VectorXd cur_state, Eigen::VectorXd poly_coeffs
   std::cout << "Cost " << cost << std::endl;
 
   std::vector<double> step_1;
-  step_1.push_back(solution.x[x_start+1]);
-  step_1.push_back(solution.x[y_start+1]);
-  step_1.push_back(solution.x[psi_start+1]);
-  step_1.push_back(solution.x[vel_start+1]);
-  step_1.push_back(solution.x[cte_start+1]); 
-  step_1.push_back(solution.x[psi_err_start]);
-  step_1.push_back(solution.x[del_start]);
-  step_1.push_back(solution.x[acc_start]);
+  step_1.push_back(solution.x[helper.x_start+1]);
+  step_1.push_back(solution.x[helper.y_start+1]);
+  step_1.push_back(solution.x[helper.psi_start+1]);
+  step_1.push_back(solution.x[helper.vel_start+1]);
+  step_1.push_back(solution.x[helper.cte_start+1]); 
+  step_1.push_back(solution.x[helper.psi_err_start]);
+  step_1.push_back(solution.x[helper.del_start]);
+  step_1.push_back(solution.x[helper.acc_start]);
   return step_1;
 }
 
@@ -145,35 +133,37 @@ void MPC::SetStateVariables(
   CppAD::vector<double> mpc_state, 
   Eigen::VectorXd cur_state) 
 {
-  for (int i = 0; i < mpc_state.size(); i++) {
+  Helper helper;
+  for (size_t i = 0; i < mpc_state.size(); i++) {
     mpc_state[i] = 0;
   }
-  mpc_state[x_start] = cur_state[0];
-  mpc_state[y_start] = cur_state[1];
-  mpc_state[psi_start] = cur_state[2];
-  mpc_state[vel_start] = cur_state[3];
-  mpc_state[cte_start] = cur_state[4];
-  mpc_state[psi_err_start] = cur_state[5];
-  mpc_state[del_start] = cur_state[6];
-  mpc_state[acc_start] = cur_state[7];
+  mpc_state[helper.x_start] = cur_state[0];
+  mpc_state[helper.y_start] = cur_state[1];
+  mpc_state[helper.psi_start] = cur_state[2];
+  mpc_state[helper.vel_start] = cur_state[3];
+  mpc_state[helper.cte_start] = cur_state[4];
+  mpc_state[helper.psi_err_start] = cur_state[5];
+  mpc_state[helper.del_start] = cur_state[6];
+  mpc_state[helper.acc_start] = cur_state[7];
 }
 
-void SetStateVariableBounds(
+void MPC::SetStateVariableBounds(
   CppAD::vector<double> lowerbound,
   CppAD::vector<double> upperbound) 
 {
+  Helper helper;
   if (lowerbound.size() != upperbound.size()) {
     throw "\nLowerbound and upperbound size must match";
   }
-  for (int i = 0; i < del_start; i++) {
+  for (size_t i = 0; i < helper.del_start; i++) {
     lowerbound[i] = std::numeric_limits<double>::min();
     upperbound[i] = std::numeric_limits<double>::max();
   }
-  for (int i = del_start; i < acc_start; i++) {
-    lowerbound[i] = deg2rad(-25);
-    upperbound[i] = deg2rad(25);
+  for (size_t i = helper.del_start; i < helper.acc_start; i++) {
+    lowerbound[i] = helper.deg2rad(-25);
+    upperbound[i] = helper.deg2rad(25);
   }
-  for (int i = acc_start; i < lowerbound.size(); i++) {
+  for (size_t i = helper.acc_start; i < lowerbound.size(); i++) {
     lowerbound[i] = 0;
     upperbound[i] = 1;
   }
@@ -184,24 +174,25 @@ void MPC::SetControlBounds(
   CppAD::vector<double> upperbound,
   Eigen::VectorXd cur_state) 
 {
+  Helper helper;
   if (lowerbound.size() != upperbound.size()) {
     throw "\nLowerbound and upperbound size must match";
   }
-  for (int i = 0; i < upperbound.size(); i++) {
+  for (size_t i = 0; i < upperbound.size(); i++) {
     lowerbound[i] = 0;
     upperbound[i] = 0;
   }
-  lowerbound[x_start] = cur_state[0];
-  lowerbound[y_start] = cur_state[1];
-  lowerbound[psi_start] = cur_state[2];
-  lowerbound[vel_start] = cur_state[3];
-  lowerbound[cte_start] = cur_state[4];
-  lowerbound[psi_err_start] = cur_state[5];
+  lowerbound[helper.x_start] = cur_state[0];
+  lowerbound[helper.y_start] = cur_state[1];
+  lowerbound[helper.psi_start] = cur_state[2];
+  lowerbound[helper.vel_start] = cur_state[3];
+  lowerbound[helper.cte_start] = cur_state[4];
+  lowerbound[helper.psi_err_start] = cur_state[5];
 
-  upperbound[x_start] = cur_state[0];
-  upperbound[y_start] = cur_state[1];
-  upperbound[psi_start] = cur_state[2];
-  upperbound[vel_start] = cur_state[3];
-  upperbound[cte_start] = cur_state[4];
-  upperbound[psi_err_start] = cur_state[5];
+  upperbound[helper.x_start] = cur_state[0];
+  upperbound[helper.y_start] = cur_state[1];
+  upperbound[helper.psi_start] = cur_state[2];
+  upperbound[helper.vel_start] = cur_state[3];
+  upperbound[helper.cte_start] = cur_state[4];
+  upperbound[helper.psi_err_start] = cur_state[5];
 }
