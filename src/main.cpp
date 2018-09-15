@@ -84,11 +84,35 @@ int main() {
           // j[1] is the data JSON object
           vector<double> ptsx = j[1]["ptsx"];
           vector<double> ptsy = j[1]["ptsy"];
-          // double px = j[1]["x"];
-          // double py = j[1]["y"];
-          // double psi = j[1]["psi"];
-          // double v = j[1]["speed"];
+          double px = j[1]["x"];
+          double py = j[1]["y"];
+          double psi = j[1]["psi"];
+          double vel = j[1]["speed"];
+          double del = j[1]["steering_angle"];
+          double acc = j[1]["throttle"];
 
+          size_t num_waypoints = ptsx.size();
+          Eigen::VectorXd waypoints_x(num_waypoints), waypoints_y(num_waypoints);
+          for (size_t i = 0; i < num_waypoints; ++i) {
+            double dx = ptsx[i] - px;
+            double dy = ptsy[i] - py;
+            waypoints_x[i] = dx*std::cos(-psi) - dy*std::sin(psi);
+            waypoints_y[i] = dx*std::sin(-psi) + dy*std::cos(psi);
+          }
+
+          int order = 3;
+          int distance_between_points = 2;
+          Eigen::VectorXd coeffs = polyfit(waypoints_x, waypoints_y, order);
+          std::vector<double> display_x(num_waypoints), display_y;
+          for (size_t i=0; i < num_waypoints; ++i) {
+            double dy = 0;
+            double dx = distance_between_points * i;
+            for (int power=0; power < order; ++power) {
+              dy += coeffs[power]*std::pow(dx, power);
+            }
+            display_x.push_back(dx);
+            display_y.push_back(dy);
+          }
           /*
           * TODO: Calculate steering angle and throttle using MPC.
           *
