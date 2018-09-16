@@ -31,6 +31,7 @@ class MPC {
     size_t psi_err_start_;
     size_t del_start_;
     size_t acc_start_;
+    double L_f_;
   private:
     size_t N_VARS_;
     size_t N_CONSTRAINTS_;

@@ -10,7 +10,6 @@ class FG_eval {
     Eigen::VectorXd coeffs;
     FG_eval(Eigen::VectorXd coeffs, MPC* mpc);
     virtual ~FG_eval();
-    const double L_f = 2.67; // length from front to center of gravity
     typedef CPPAD_TESTVECTOR(CppAD::AD<double>) ADvector;
     void operator()(ADvector& cost_vars, const ADvector& state_vars);
   private:

@@ -8,14 +8,15 @@
 // MPC class definition implementation.
 //
 MPC::MPC() {
-  N_TIMESTEPS_ = 25;
-  dt_ = 0.05;
+  N_TIMESTEPS_ = 10;
+  dt_ = 0.1;
+  L_f_ = 2.67;
 
   N_VARS_ = 6*N_TIMESTEPS_ + 2*(N_TIMESTEPS_-1);
   N_CONSTRAINTS_ = 6*N_TIMESTEPS_;
   state_vars_.resize(N_VARS_);
   state_vars_lowerbound_.resize(N_VARS_);
-  state_vars_lowerbound_.resize(N_VARS_);
+  state_vars_upperbound_.resize(N_VARS_);
   constraints_lowerbound_.resize(N_CONSTRAINTS_);
   constraints_upperbound_.resize(N_CONSTRAINTS_);
 
@@ -81,8 +82,6 @@ void MPC::SetStateVariables(Eigen::VectorXd cur_state)
   state_vars_[vel_start_] = cur_state[3];
   state_vars_[cte_start_] = cur_state[4];
   state_vars_[psi_err_start_] = cur_state[5];
-  state_vars_[del_start_] = cur_state[6];
-  state_vars_[acc_start_] = cur_state[7];
 }
 
 void MPC::SetStateVariableBounds() 
@@ -99,8 +98,8 @@ void MPC::SetStateVariableBounds()
     state_vars_upperbound_[i] = deg2rad(25);
   }
   for (size_t i = acc_start_; i < state_vars_lowerbound_.size(); i++) {
-    state_vars_lowerbound_[i] = 0;
-    state_vars_upperbound_[i] = 1;
+    state_vars_lowerbound_[i] = 0.0;
+    state_vars_upperbound_[i] = 0.5;
   }
 }
 
