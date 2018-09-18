@@ -69,18 +69,18 @@ std::vector<double> MPC::Solve(Eigen::VectorXd cur_state, Eigen::VectorXd poly_c
     // std::cout << "Cost " << cost << std::endl;
 
     std::vector<double> result_vector;
-    for (size_t i = 0; i < N_TIMESTEPS_; ++i)
+    for (size_t i = 0; i < fg_eval.x_.size(); ++i)
     {
-        result_vector.push_back(0.0);//CppAD::Value(fg_eval.x_[i]));
+        result_vector.push_back(CppAD::Value(fg_eval.x_[i]));
     }
-    for (size_t i = N_TIMESTEPS_; i < 2*N_TIMESTEPS_; ++i)
+    for (size_t i = 0; i < fg_eval.y_.size(); ++i)
     {
-        result_vector.push_back(0.0);//CppAD::Value(fg_eval.y_[i]));
+        result_vector.push_back(CppAD::Value(fg_eval.y_[i]));
     }
     // for (size_t i = 0; i < N_VARS_; ++i) {
     //     std:: cout << solution.x[i] << "\t";
     // }
-    std::cout << "\n";
+    // std::cout << "\n";
     result_vector.push_back(solution.x[del_start_]);
     result_vector.push_back(solution.x[acc_start_]);
     return result_vector;
