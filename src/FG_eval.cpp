@@ -37,7 +37,7 @@ void FG_eval::operator()(ADvector &cost_vars, const ADvector &state_vars)
 
     int vel_weight = 1;
     int cte_weight = 5;
-    int psi_err_weight = 50;
+    int psi_err_weight = 100;
     int del_weight = 30;
     int fast_turn_weight = 5;
     int acc_weight = 1;
@@ -66,10 +66,6 @@ void FG_eval::operator()(ADvector &cost_vars, const ADvector &state_vars)
                                                            state_vars[acc_start_ + t],
                                                        2);
     }
-    // cost_vars[0] = vel_cost + cte_cost + psi_err_cost + del_cost + acc_cost + del_change_cost + acc_change_cost;
-    // std::cout << "Total cost: " << cost_vars[0] << "Velocity: " << vel_cost << "\tCTE: " << cte_cost <<
-    //         "\tPsi Err: " << psi_err_cost << "\tDel: " << del_cost << "\tAcc: " << acc_cost <<
-    //         "\tDel_change: " << del_change_cost << "\tAcc change: " << acc_change_cost << "\n";
 }
 
 void FG_eval::KinematicModel(const ADvector &state_vars)
@@ -87,8 +83,8 @@ void FG_eval::KinematicModel(const ADvector &state_vars)
     vel_[0] += state_vars[acc_start_]*LATENCY_;
     cte_[0] = coeffs_[3] * CppAD::pow(x_[0], 3) + coeffs_[2] * CppAD::pow(x_[0], 2) +
               coeffs_[1] * x_[0] + coeffs_[0] - y_[0];
-    psi_err_[0] = CppAD::atan(coeffs_[1] + 2 * coeffs_[2] * x_[0] +
-                            3 * coeffs_[3] * CppAD::pow(x_[0], 2)) - psi_[0];          
+    psi_err_[0] = -CppAD::atan(coeffs_[1] + 2 * coeffs_[2] * x_[0] +
+                            3 * coeffs_[3] * CppAD::pow(x_[0], 2)) + psi_[0];          
 
     for (size_t t = 1; t < N_TIMESTEPS_; ++t)
     {
@@ -100,8 +96,7 @@ void FG_eval::KinematicModel(const ADvector &state_vars)
         vel_[t] = vel_[t - 1] + acc * dt_;
         cte_[t] = coeffs_[3] * CppAD::pow(x_[t], 3) + coeffs_[2] * CppAD::pow(x_[t], 2) +
                   coeffs_[1] * x_[t] + coeffs_[0] - y_[t];
-        psi_err_[t] = CppAD::atan(coeffs_[1] + 2 * coeffs_[2] * x_[t] +
-                                  3 * coeffs_[3] * CppAD::pow(x_[t], 2)) -
-                      psi_[t];
+        psi_err_[t] = psi_[t] - CppAD::atan(coeffs_[1] + 2 * coeffs_[2] * x_[t] +
+                        3 * coeffs_[3] * CppAD::pow(x_[t], 2));
     }
 }
