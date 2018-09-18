@@ -18,10 +18,12 @@ MPC::MPC()
 
     del_start_ = 0;
     acc_start_ = N_TIMESTEPS_ - 1;
+    x_.resize(N_TIMESTEPS_);
+    y_.resize(N_TIMESTEPS_);
 }
 MPC::~MPC() {}
 
-std::vector<double> MPC::Solve(Eigen::VectorXd cur_state, Eigen::VectorXd poly_coeffs)
+void MPC::Solve(Eigen::VectorXd cur_state, Eigen::VectorXd poly_coeffs)
 {
     bool ok = true;
     Dvector state_vars(N_VARS_);
@@ -71,19 +73,14 @@ std::vector<double> MPC::Solve(Eigen::VectorXd cur_state, Eigen::VectorXd poly_c
     std::vector<double> result_vector;
     for (size_t i = 0; i < fg_eval.x_.size(); ++i)
     {
-        result_vector.push_back(CppAD::Value(fg_eval.x_[i]));
+        x_[i] = CppAD::Value(fg_eval.x_[i]);
     }
     for (size_t i = 0; i < fg_eval.y_.size(); ++i)
     {
-        result_vector.push_back(CppAD::Value(fg_eval.y_[i]));
+        y_[i] = CppAD::Value(fg_eval.y_[i]);
     }
-    // for (size_t i = 0; i < N_VARS_; ++i) {
-    //     std:: cout << solution.x[i] << "\t";
-    // }
-    // std::cout << "\n";
-    result_vector.push_back(solution.x[del_start_]);
-    result_vector.push_back(solution.x[acc_start_]);
-    return result_vector;
+    steer_ = solution.x[del_start_];
+    throttle_ = solution.x[acc_start_];
 }
 
 

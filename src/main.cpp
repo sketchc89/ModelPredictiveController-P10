@@ -115,35 +115,17 @@ int main()
                     double cte = polyeval(coeffs, 0);
                     double psi_err = -std::atan(coeffs[1]);
                     Eigen::VectorXd cur_state(6);
-                    // std::cout << "Current State: 0\t0\t0\t" << vel << "\t" << cte << "\t" << psi_err << "\n"; 
                     cur_state << 0, 0, 0, vel, cte, psi_err;
-                    std::vector<double> result = mpc.Solve(cur_state, coeffs);
-                    
-                    
-                    //Display the MPC predicted trajectory
-                    std::vector<double> mpc_x_vals;
-                    std::vector<double> mpc_y_vals;
-
-                    for (size_t i = 0; i < mpc.N_TIMESTEPS_; ++i)
-                    {
-                        mpc_x_vals.push_back(result[i]);
-                    }
-
-                    for (size_t i = mpc.N_TIMESTEPS_; i < 2*mpc.N_TIMESTEPS_; ++i)
-                    {
-                        mpc_y_vals.push_back(result[i]);
-                    }
-                    double steer_value = result[2*mpc.N_TIMESTEPS_];
-                    double throttle_value = result[2*mpc.N_TIMESTEPS_ + 1];
+                    mpc.Solve(cur_state, coeffs);
                     
                     json msgJson;
-                    msgJson["steering_angle"] = -steer_value / mpc.deg2rad(25);
-                    msgJson["throttle"] = throttle_value;
+                    msgJson["steering_angle"] = -mpc.steer_ / mpc.deg2rad(25);
+                    msgJson["throttle"] = mpc.throttle_;
 
                     //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
                     // the points in the simulator are connected by a Green line
-                    msgJson["mpc_x"] = mpc_x_vals;
-                    msgJson["mpc_y"] = mpc_y_vals;
+                    msgJson["mpc_x"] = mpc.x_;
+                    msgJson["mpc_y"] = mpc.y_;
 
                     //Display the waypoints/reference line
                     //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system

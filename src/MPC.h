@@ -16,7 +16,7 @@ class MPC
 
     // Solve the model given an initial state and polynomial coefficients.
     // Return the first actuatotions.
-    std::vector<double> Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
+    void Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
     void SetStateVariables(Dvector &state_vars);
     void SetStateVariableBounds(Dvector &state_vars_lowerbound, Dvector &state_vars_upperbound);
     void SetConstraintBounds(Dvector constraints_lowerbound, Dvector constraints_upperbound);
@@ -27,6 +27,10 @@ class MPC
     size_t del_start_;
     size_t acc_start_;
     double L_f_;
+    double steer_;
+    double throttle_;
+    std::vector<double> x_;
+    std::vector<double> y_;
 
   private:
     size_t N_VARS_;
