@@ -33,6 +33,7 @@ class FG_eval {
     double cur_psi_err_;
     double ref_v_;
     double L_f_;
+    double LATENCY_;
 };
 
 #endif

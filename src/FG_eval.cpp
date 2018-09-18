@@ -24,8 +24,9 @@ FG_eval::FG_eval(Eigen::VectorXd cur_state, Eigen::VectorXd coeffs, MPC *mpc)
     this->L_f_ = mpc->L_f_;
     this->del_start_ = mpc->del_start_;
     this->acc_start_ = mpc->acc_start_;
-    this->ref_v_ = 100;
+    this->ref_v_ = 70;
     this->L_f_ = 2.67;
+    this->LATENCY_ = 0.1;
 }
 FG_eval::~FG_eval() {}
 
@@ -37,19 +38,12 @@ void FG_eval::operator()(ADvector &cost_vars, const ADvector &state_vars)
     int vel_weight = 1;
     int cte_weight = 5;
     int psi_err_weight = 50;
-    int del_weight = 10;
-    int fast_turn_weight = 10;
+    int del_weight = 30;
+    int fast_turn_weight = 5;
     int acc_weight = 1;
-    int del_change_weight = 100;
+    int del_change_weight = 1000;
     int acc_change_weight = 1;
-    // CppAD::AD<double> vel_cost = 0.0;
-    // CppAD::AD<double> cte_cost = 0.0;
-    // CppAD::AD<double> psi_err_cost = 0.0;
-    // CppAD::AD<double> del_cost = 0.0;
-    // CppAD::AD<double> acc_cost = 0.0;
-    // CppAD::AD<double> del_change_cost = 0.0;
-    // CppAD::AD<double> acc_change_cost = 0.0;
-
+    
     for (size_t t = 0; t < N_TIMESTEPS_; ++t)
     {
         cost_vars[0] += vel_weight * CppAD::pow(vel_[t] - ref_v_, 2);
@@ -86,6 +80,15 @@ void FG_eval::KinematicModel(const ADvector &state_vars)
     vel_[0] = cur_vel_;
     cte_[0] = cur_cte_;
     psi_err_[0] = cur_psi_err_;
+    //latency
+    x_[0] += vel_[0] * CppAD::cos(psi_[0])*LATENCY_;
+    y_[0] += vel_[0] * CppAD::sin(psi_[0])*LATENCY_;
+    psi_[0] += vel_[0] * state_vars[del_start_]*LATENCY_ / L_f_;
+    vel_[0] += state_vars[acc_start_]*LATENCY_;
+    cte_[0] = coeffs_[3] * CppAD::pow(x_[0], 3) + coeffs_[2] * CppAD::pow(x_[0], 2) +
+              coeffs_[1] * x_[0] + coeffs_[0] - y_[0];
+    psi_err_[0] = CppAD::atan(coeffs_[1] + 2 * coeffs_[2] * x_[0] +
+                            3 * coeffs_[3] * CppAD::pow(x_[0], 2)) - psi_[0];          
 
     for (size_t t = 1; t < N_TIMESTEPS_; ++t)
     {
