@@ -7,20 +7,21 @@
 
 class FG_eval {
   public:
-    Eigen::VectorXd coeffs;
-    FG_eval(Eigen::VectorXd coeffs, MPC* mpc);
-    virtual ~FG_eval();
     typedef CPPAD_TESTVECTOR(CppAD::AD<double>) ADvector;
-    void operator()(ADvector& cost_vars, const ADvector& state_vars);
+    typedef CPPAD_TESTVECTOR(double) Dvector;
+    FG_eval(Dvector &vel, Dvector &cte, Dvector &psi_err, MPC* mpc);
+    virtual ~FG_eval();
+    void operator()(ADvector &cost_vars, const ADvector &state_vars);
+    void KinematicModel(const ADvector &state_vars,  ADvector &x, 
+                        ADvector &y, ADvector &psi, ADvector &vel,
+                        ADvector &cte, ADvector &psi_err);
   private:
+    Eigen::VectorXd coeffs_;
     size_t N_TIMESTEPS_;
     double dt_;
-    size_t x_start_;
-    size_t y_start_;
-    size_t psi_start_;
-    size_t vel_start_;
-    size_t cte_start_;
-    size_t psi_err_start_;
+    Dvector vel_;
+    Dvector cte_;
+    Dvector psi_err_;
     size_t del_start_;
     size_t acc_start_;
 
