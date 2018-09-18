@@ -9,6 +9,7 @@ class MPC
 {
   public:
     MPC();
+    typedef CPPAD_TESTVECTOR(CppAD::AD<double>) ADvector;
     typedef CPPAD_TESTVECTOR(double) Dvector;
 
     virtual ~MPC();
@@ -21,9 +22,6 @@ class MPC
     void SetConstraintBounds(Dvector constraints_lowerbound, Dvector constraints_upperbound);
     double deg2rad(double x);
     double rad2deg(double x);
-    void KinematicModel(const Dvector &state_vars, Eigen::VectorXd cur_state, Eigen::VectorXd coeffs,
-                        Dvector &x, Dvector &y, Dvector &psi,
-                        Dvector &vel, Dvector &cte, Dvector &psi_err);
     size_t N_TIMESTEPS_;
     double dt_;
     size_t del_start_;
