@@ -5,41 +5,34 @@
 #include "Eigen/Core"
 #include <cppad/cppad.hpp>
 
-using namespace std;
-
-class MPC {
- public:
-  MPC();
+class MPC
+{
+  public:
+    MPC();
+    typedef CPPAD_TESTVECTOR(double) Dvector;
 
     virtual ~MPC();
 
     // Solve the model given an initial state and polynomial coefficients.
     // Return the first actuatotions.
-    vector<double> Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
-    void SetStateVariables(Eigen::VectorXd cur_state);
-    void SetStateVariableBounds();
-    void SetConstraintBounds(Eigen::VectorXd cur_state);
+    std::vector<double> Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs);
+    void SetStateVariables(Dvector &state_vars);
+    void SetStateVariableBounds(Dvector &state_vars_lowerbound, Dvector &state_vars_upperbound);
+    void SetConstraintBounds(Dvector constraints_lowerbound, Dvector constraints_upperbound);
     double deg2rad(double x);
     double rad2deg(double x);
+    void KinematicModel(const Dvector &state_vars, Eigen::VectorXd cur_state, Eigen::VectorXd coeffs,
+                        Dvector &x, Dvector &y, Dvector &psi,
+                        Dvector &vel, Dvector &cte, Dvector &psi_err);
     size_t N_TIMESTEPS_;
     double dt_;
-    size_t x_start_;
-    size_t y_start_;
-    size_t psi_start_;
-    size_t vel_start_;
-    size_t cte_start_;
-    size_t psi_err_start_;
     size_t del_start_;
     size_t acc_start_;
     double L_f_;
+
   private:
     size_t N_VARS_;
     size_t N_CONSTRAINTS_;
-    CppAD::vector<double> state_vars_;
-    CppAD::vector<double> state_vars_lowerbound_;
-    CppAD::vector<double> state_vars_upperbound_;
-    CppAD::vector<double> constraints_lowerbound_;
-    CppAD::vector<double> constraints_upperbound_;
 };
 
 #endif /* MPC_H */
