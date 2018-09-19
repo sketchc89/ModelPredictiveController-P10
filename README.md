@@ -4,7 +4,7 @@ Self-Driving Car Engineer Nanodegree Program
 ---
 
 
-![MPC 70](./Docs/mpc_70.gif)
+![MPC 70](./Docs/mpc_71.gif)
 
 ## Implementation
 This project demonstrates Model Predictive Control to control a simulated vehicle to a set trajectory around a simulated track. The model has a state, a set of constraint, and a cost assigned to its state. A non-linear solver is used to satisfy these constraints while reducing the cost.
