@@ -25,6 +25,14 @@ Cost is added from the following sources:
 
 The parameters were weighted relative to one another in order with 0 added latency, then adjusted after adding 100 ms of latency. The most notable cost added to the system is #8. This cost penalizes high velocity sharp turns which causes the car to tend to understeer. Having a small bit of understeer is more desirable than oversteer because oversteering systems are dynamically unstable.
 
+### Timing Parameters
+The number of timesteps was originally set to 25 and time between steps was set to 0.05. As the vehicle reference speed was increased, I reduced the number of timesteps to 10 and the time between steps to 0.1. I reduced the number of timesteps in order to reduce computation time of the Ipopt solver. Once I reduced the number of timesteps, I had to increase the time between steps in order to maintain the same look ahead distance. A smaller dt is better because it allows the system to update the vehicles projected path more quickly, but it has to be weighed against the extra computation time that short cycles incur.
+
+### Polynomial fitting
+A list of points representing points along the trajectory and the vehicles position and heading were received from the simulation. The rotation matrix is R(psi) = [cos(psi) -sin(psi); sin(psi) cos(psi)]. We would like the trajectory to be fitted to a polynomial relative to the center of gravity of the car (car Cg = 0,0,0; x,y,yaw). In order to do this we rotate the global coordinate system by negative psi because we're rotating from psi back to 0.
+
+Once the global coordinates are converted to vehicle coordinates, we use the trajectory points to solve for a cubic polynomial. The method used is a least square approximation by QR factorization. QR factorization was done with a householder transformation implementation from the Eigen library, because it was used in the cloned scaffolding of this project.
+
 ### Latency adjustment
 100 ms of latency was added to the system to simulate the effect of sending commands to actuators (this seems excessive). In order to compensate for latency, the first measurement of state was calculated as if it were one step into the future. The reference velocity also had to be reduced. The vehicle could drive at 90mph with 0ms latency, but couldn't go above 75 without driving off the road. Refactoring my code to reduce slow copying of data from one vector to another could also reduce the latency of the entire system if I were to spend more time on it. All messages are supressed to reduce latency.
 
